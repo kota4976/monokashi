@@ -3,38 +3,147 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>画像一覧</title>
+    <title>ものかしちょう - 一覧</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&family=Yusei+Magic&display=swap" rel="stylesheet">
     <style>
-        /* ... （スタイルは変更なし） ... */
-        body { font-family: sans-serif; background-color: #f4f4f9; margin: 0; }
-        .container { max-width: 1200px; margin: 20px auto; padding: 20px; }
-        h1 { text-align: center; }
+        /* --- 基本スタイル（モバイルファースト） --- */
+        :root {
+            --font-title: 'Yusei Magic', cursive; /* タイトル用の可愛い手書き風フォント */
+            --font-serif: 'Yu Gothic', sans-serif; /* セリフ体フォント */
+            --font-body: 'M PLUS Rounded 1c', sans-serif; /* 全体用の丸ゴシック体フォント */
+            --color-bg: #fdfaf6;
+            --color-text: #3a2e28;
+            --color-primary: #a07d5b;
+            --color-card-bg: #ffffff;
+            --color-danger: #d32f2f;
+        }
+        body {
+            font-family: var(--font-body);
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            margin: 0;
+            padding: 15px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+
+        /* ヘッダー */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 0 10px 20px 10px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e0d9d1;
+        }
+        .page-header h1 {
+            font-family: var(--font-serif);
+            margin: 0;
+            font-size: 1.8rem;
+            color: var(--color-primary);
+        }
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .nav-button, #search-toggle-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            border: 1px solid var(--color-primary);
+            color: var(--color-primary);
+            background-color: transparent;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .nav-button:hover, #search-toggle-button:hover {
+            background-color: var(--color-primary);
+            color: white;
+        }
+        .nav-button svg, #search-toggle-button svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+        .nav-button-text {
+            display: none;
+        }
+
+        /* 検索コントロール */
         .search-controls {
             display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            align-items: center;
+            flex-direction: column;
             gap: 15px;
             margin: 20px 0 30px 0;
             padding: 20px;
-            background-color: #fff;
+            background-color: var(--color-card-bg);
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border: 1px solid #e0d9d1;
+            overflow: hidden;
+            transition: all 0.4s ease-in-out;
+            max-height: 500px;
+        }
+        .search-controls.hidden {
+            max-height: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+            margin-top: 0;
+            margin-bottom: 0;
+            opacity: 0;
+            border-width: 0;
         }
         .search-controls > div { display: flex; flex-direction: column; }
-        .search-controls label { margin-bottom: 5px; font-size: 14px; color: #555; font-weight: bold; }
-        .search-controls input, .search-controls select { font-size: 16px; padding: 10px; border-radius: 5px; border: 1px solid #ccc; }
-        .search-controls input { width: 250px; }
-        .search-controls select { width: 200px; }
-        #imageList { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; }
-        .photo-card { background: #fff; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); overflow: hidden; width: 280px; cursor: pointer; transition: transform 0.2s; }
-        .photo-card:hover { transform: translateY(-5px); }
-        .photo-card img { width: 100%; height: 200px; object-fit: cover; display: block; background-color: #eee; }
+        .search-controls label { margin-bottom: 5px; font-size: 14px; font-weight: bold; }
+        .search-controls input, .search-controls select {
+            font-family: var(--font-sans);
+            font-size: 16px;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        /* 画像一覧（台帳リスト） */
+        #imageList {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        .photo-card {
+            background: var(--color-card-bg);
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border-left: 5px solid var(--color-primary);
+        }
+        .photo-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+        }
+        .photo-card img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-top-left-radius: 3px;
+            border-top-right-radius: 3px;
+        }
         .photo-info { padding: 15px; }
-        .photo-info p { margin: 0 0 8px 0; word-wrap: break-word; }
-        .return-date { color: #d32f2f; font-weight: bold; }
+        .photo-info p { margin: 0 0 10px 0; line-height: 1.6; }
+        .photo-info p strong { margin-right: 8px; }
+        .return-date { color: var(--color-danger); font-weight: bold; }
+        
+        /* モーダルのスタイル */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 1000; }
         .modal-content { background: #fff; padding: 30px; border-radius: 8px; width: 90%; max-width: 500px; }
+        .modal-content h2 { font-family: var(--font-serif); margin-top: 0; text-align: center;}
         .modal-body .input-group { margin-bottom: 20px; }
         .modal-body label { display: block; margin-bottom: 5px; font-weight: bold; }
         .modal-body select, .modal-body input { width: 100%; padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
@@ -42,12 +151,39 @@
         .modal-footer button { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; margin-left: 10px; }
         #save-button { background-color: #007bff; color: white; }
         #cancel-button { background-color: #6c757d; color: white; }
+
+        /* PC用スタイル（画面幅が768px以上） */
+        @media (min-width: 768px) {
+            body { padding: 40px; }
+            .page-header h1 { font-size: 2.5rem; }
+            .search-controls { flex-direction: row; justify-content: center; }
+            .search-controls > div { flex: 1; max-width: 300px; }
+            #imageList { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
+            .nav-button, #search-toggle-button {
+                padding: 8px 16px;
+            }
+            .nav-button-text {
+                display: inline;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>画像一覧</h1>
-        <div class="search-controls">
+        <header class="page-header">
+            <h1>ものかしちょう</h1>
+            <div class="header-actions">
+                <a href="upload.html" class="nav-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                    <span class="nav-button-text">アップロード</span>
+                </a>
+                <button id="search-toggle-button" class="nav-button" aria-label="検索フォームを開く">
+                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                </button>
+            </div>
+        </header>
+
+        <div class="search-controls hidden">
             <div>
                 <label for="studentIdSearch">学籍番号で検索</label>
                 <input type="text" id="studentIdSearch" placeholder="学籍番号を入力...">
@@ -57,7 +193,8 @@
                 <select id="genreSearch"></select>
             </div>
         </div>
-        <div id="imageList"><p>画像を読み込んでいます...</p></div>
+
+        <div id="imageList"><p>台帳を読み込んでいます...</p></div>
     </div>
 
     <div id="edit-modal" class="modal-overlay">
@@ -82,6 +219,9 @@
     </div>
 
     <script>
+        // DOM要素の取得
+        const searchToggleButton = document.getElementById('search-toggle-button');
+        const searchControls = document.querySelector('.search-controls');
         const studentIdSearch = document.getElementById('studentIdSearch');
         const genreSearch = document.getElementById('genreSearch');
         const imageListDiv = document.getElementById('imageList');
@@ -91,15 +231,14 @@
         const editImageNameInput = document.getElementById('edit-image-name');
         const editGenreSelect = document.getElementById('edit-genre');
         const editReturnDateInput = document.getElementById('edit-return-date');
+
         let allPhotos = [];
 
-        // --- ▼▼▼ ジャンルを動的に読み込む処理を追加 ▼▼▼ ---
         async function loadGenres() {
             try {
                 const response = await fetch('get_genres.php');
                 const genres = await response.json();
-
-                // 検索用のセレクトボックスを更新
+                
                 genreSearch.innerHTML = '';
                 const allOption = document.createElement('option');
                 allOption.value = '';
@@ -112,7 +251,6 @@
                     genreSearch.appendChild(option);
                 });
 
-                // 編集モーダル用のセレクトボックスを更新
                 editGenreSelect.innerHTML = '';
                  genres.forEach(genre => {
                     const option = document.createElement('option');
@@ -120,37 +258,11 @@
                     option.textContent = genre;
                     editGenreSelect.appendChild(option);
                 });
-
             } catch (error) {
                 console.error('ジャンルの読み込みに失敗:', error);
             }
         }
-        // --- ▲▲▲ ここまで ▲▲▲ ---
 
-        async function fetchAndRenderPhotos() { /* ...（変更なし）... */ }
-        function applyFiltersAndRender() { /* ...（変更なし）... */ }
-        function renderPhotoCards(photos) { /* ...（変更なし）... */ }
-        function openEditModal(photo) { /* ...（変更なし）... */ }
-        function closeEditModal() { /* ...（変更なし）... */ }
-        async function saveChanges() { /* ...（変更なし）... */ }
-
-        // ページ読み込み時にジャンルと写真の両方を読み込む
-        window.addEventListener('load', () => {
-            loadGenres();
-            fetchAndRenderPhotos();
-        });
-
-        studentIdSearch.addEventListener('input', applyFiltersAndRender);
-        genreSearch.addEventListener('change', applyFiltersAndRender);
-        cancelButton.addEventListener('click', closeEditModal);
-        saveButton.addEventListener('click', saveChanges);
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) closeEditModal();
-        });
-        
-        // ----------------------------------------------------
-        //  (以下、変更のない関数群)
-        // ----------------------------------------------------
         async function fetchAndRenderPhotos() {
             try {
                 const response = await fetch('get_photos.php');
@@ -161,10 +273,12 @@
                 imageListDiv.innerHTML = `<p>画像の読み込みに失敗しました: ${error.message}</p>`;
             }
         }
+        
         function applyFiltersAndRender() {
             const studentId = studentIdSearch.value.trim().toLowerCase();
             const genre = genreSearch.value;
             let filteredPhotos = [...allPhotos];
+
             if (studentId) {
                 filteredPhotos = filteredPhotos.filter(photo => 
                     photo.student_id && photo.student_id.toLowerCase().includes(studentId)
@@ -175,16 +289,19 @@
             }
             renderPhotoCards(filteredPhotos);
         }
+
         function renderPhotoCards(photos) {
             imageListDiv.innerHTML = '';
             if (photos.length === 0) {
-                imageListDiv.innerHTML = '<p>該当する画像はありません。</p>';
+                imageListDiv.innerHTML = '<p>該当する項目はありません。</p>';
                 return;
             }
+
             photos.forEach(photo => {
                 const card = document.createElement('div');
                 card.className = 'photo-card';
                 card.dataset.imageName = photo.image_name;
+                
                 card.innerHTML = `
                     <img src="${photo.imageUrl}" alt="${photo.student_id}">
                     <div class="photo-info">
@@ -193,19 +310,23 @@
                         ${photo.return_date ? `<p class="return-date"><strong>返却予定:</strong> ${photo.return_date}</p>` : ''}
                     </div>
                 `;
+                
                 card.addEventListener('click', () => openEditModal(photo));
                 imageListDiv.appendChild(card);
             });
         }
+
         function openEditModal(photo) {
             editImageNameInput.value = photo.image_name;
             editReturnDateInput.value = photo.return_date || '';
             editGenreSelect.value = photo.genre || '';
             modal.style.display = 'flex';
         }
+        
         function closeEditModal() {
             modal.style.display = 'none';
         }
+
         async function saveChanges() {
             const imageName = editImageNameInput.value;
             const selectedGenre = editGenreSelect.value;
@@ -232,6 +353,22 @@
                 alert('通信エラーが発生しました。');
             }
         }
+
+        // イベントリスナー
+        window.addEventListener('load', () => {
+            loadGenres();
+            fetchAndRenderPhotos();
+        });
+        searchToggleButton.addEventListener('click', () => {
+            searchControls.classList.toggle('hidden');
+        });
+        studentIdSearch.addEventListener('input', applyFiltersAndRender);
+        genreSearch.addEventListener('change', applyFiltersAndRender);
+        cancelButton.addEventListener('click', closeEditModal);
+        saveButton.addEventListener('click', saveChanges);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeEditModal();
+        });
     </script>
 </body>
 </html>
