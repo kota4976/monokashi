@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>画像アップロード</title>
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; padding: 40px; background-color: #f0f2f5; }
+        .container { width: 100%; max-width: 500px; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .input-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"], input[type="file"], select {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            font-size: 18px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover { background-color: #0056b3; }
+        #message { text-align: center; font-weight: bold; margin-top: 20px; min-height: 24px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>画像アップロード</h1>
+        <form id="uploadForm">
+            <div class="input-group">
+                <label for="studentId">学籍番号</label>
+                <input type="text" id="studentId" name="student_id" required>
+            </div>
+            <div class="input-group">
+                <label for="genre">ジャンル</label>
+                <select id="genre" name="genre"></select>
+                </div>
+            <div class="input-group">
+                <label for="imageFile">画像ファイル</label>
+                <input type="file" id="imageFile" name="image_file" accept="image/*" required>
+            </div>
+            <button type="submit">アップロード</button>
+        </form>
+        <div id="message"></div>
+    </div>
+
+    <script>
+        const uploadForm = document.getElementById('uploadForm');
+        const messageDiv = document.getElementById('message');
+        const genreSelect = document.getElementById('genre'); // select要素を取得
+
+        // --- ▼▼▼ ジャンルを動的に読み込む処理を追加 ▼▼▼ ---
+        async function loadGenres() {
+            try {
+                const response = await fetch('get_genres.php');
+                const genres = await response.json();
+
+                genreSelect.innerHTML = ''; // 中身をクリア
+
+                // 「ジャンルを選択」の選択肢を追加
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = '-- ジャンルを選択 --';
+                genreSelect.appendChild(defaultOption);
+
+                // DBから取得したジャンルを追加
+                genres.forEach(genre => {
+                    const option = document.createElement('option');
+                    option.value = genre;
+                    option.textContent = genre;
+                    genreSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('ジャンルの読み込みに失敗:', error);
+            }
+        }
+        // --- ▲▲▲ ここまで ▲▲▲ ---
+
+        // ページ読み込み時にジャンルを読み込む
+        window.addEventListener('load', loadGenres);
+
+        uploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(uploadForm);
+            messageDiv.textContent = 'アップロード中...';
+            try {
+                const response = await fetch('upload.php', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+                if (result.success) {
+                    messageDiv.textContent = 'アップロードに成功しました！';
+                    uploadForm.reset();
+                } else {
+                    messageDiv.textContent = 'エラー: ' + result.message;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                messageDiv.textContent = 'エラー: サーバーとの通信に失敗しました。';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>画像一覧</title>
+    <style>
+        /* ... （スタイルは変更なし） ... */
+        body { font-family: sans-serif; background-color: #f4f4f9; margin: 0; }
+        .container { max-width: 1200px; margin: 20px auto; padding: 20px; }
+        h1 { text-align: center; }
+        .search-controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin: 20px 0 30px 0;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .search-controls > div { display: flex; flex-direction: column; }
+        .search-controls label { margin-bottom: 5px; font-size: 14px; color: #555; font-weight: bold; }
+        .search-controls input, .search-controls select { font-size: 16px; padding: 10px; border-radius: 5px; border: 1px solid #ccc; }
+        .search-controls input { width: 250px; }
+        .search-controls select { width: 200px; }
+        #imageList { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; }
+        .photo-card { background: #fff; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); overflow: hidden; width: 280px; cursor: pointer; transition: transform 0.2s; }
+        .photo-card:hover { transform: translateY(-5px); }
+        .photo-card img { width: 100%; height: 200px; object-fit: cover; display: block; background-color: #eee; }
+        .photo-info { padding: 15px; }
+        .photo-info p { margin: 0 0 8px 0; word-wrap: break-word; }
+        .return-date { color: #d32f2f; font-weight: bold; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: #fff; padding: 30px; border-radius: 8px; width: 90%; max-width: 500px; }
+        .modal-body .input-group { margin-bottom: 20px; }
+        .modal-body label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .modal-body select, .modal-body input { width: 100%; padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        .modal-footer { text-align: right; margin-top: 20px; }
+        .modal-footer button { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; margin-left: 10px; }
+        #save-button { background-color: #007bff; color: white; }
+        #cancel-button { background-color: #6c757d; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>画像一覧</h1>
+        <div class="search-controls">
+            <div>
+                <label for="studentIdSearch">学籍番号で検索</label>
+                <input type="text" id="studentIdSearch" placeholder="学籍番号を入力...">
+            </div>
+            <div>
+                <label for="genreSearch">ジャンルで検索</label>
+                <select id="genreSearch"></select>
+            </div>
+        </div>
+        <div id="imageList"><p>画像を読み込んでいます...</p></div>
+    </div>
+
+    <div id="edit-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2>情報の編集</h2>
+            <div class="modal-body">
+                <input type="hidden" id="edit-image-name">
+                <div class="input-group">
+                    <label for="edit-genre">ジャンル</label>
+                    <select id="edit-genre"></select>
+                </div>
+                <div class="input-group">
+                    <label for="edit-return-date">返却予定日</label>
+                    <input type="date" id="edit-return-date">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancel-button">キャンセル</button>
+                <button id="save-button">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const studentIdSearch = document.getElementById('studentIdSearch');
+        const genreSearch = document.getElementById('genreSearch');
+        const imageListDiv = document.getElementById('imageList');
+        const modal = document.getElementById('edit-modal');
+        const cancelButton = document.getElementById('cancel-button');
+        const saveButton = document.getElementById('save-button');
+        const editImageNameInput = document.getElementById('edit-image-name');
+        const editGenreSelect = document.getElementById('edit-genre');
+        const editReturnDateInput = document.getElementById('edit-return-date');
+        let allPhotos = [];
+
+        // --- ▼▼▼ ジャンルを動的に読み込む処理を追加 ▼▼▼ ---
+        async function loadGenres() {
+            try {
+                const response = await fetch('get_genres.php');
+                const genres = await response.json();
+
+                // 検索用のセレクトボックスを更新
+                genreSearch.innerHTML = '';
+                const allOption = document.createElement('option');
+                allOption.value = '';
+                allOption.textContent = 'すべてのジャンル';
+                genreSearch.appendChild(allOption);
+                genres.forEach(genre => {
+                    const option = document.createElement('option');
+                    option.value = genre;
+                    option.textContent = genre;
+                    genreSearch.appendChild(option);
+                });
+
+                // 編集モーダル用のセレクトボックスを更新
+                editGenreSelect.innerHTML = '';
+                 genres.forEach(genre => {
+                    const option = document.createElement('option');
+                    option.value = genre;
+                    option.textContent = genre;
+                    editGenreSelect.appendChild(option);
+                });
+
+            } catch (error) {
+                console.error('ジャンルの読み込みに失敗:', error);
+            }
+        }
+        // --- ▲▲▲ ここまで ▲▲▲ ---
+
+        async function fetchAndRenderPhotos() { /* ...（変更なし）... */ }
+        function applyFiltersAndRender() { /* ...（変更なし）... */ }
+        function renderPhotoCards(photos) { /* ...（変更なし）... */ }
+        function openEditModal(photo) { /* ...（変更なし）... */ }
+        function closeEditModal() { /* ...（変更なし）... */ }
+        async function saveChanges() { /* ...（変更なし）... */ }
+
+        // ページ読み込み時にジャンルと写真の両方を読み込む
+        window.addEventListener('load', () => {
+            loadGenres();
+            fetchAndRenderPhotos();
+        });
+
+        studentIdSearch.addEventListener('input', applyFiltersAndRender);
+        genreSearch.addEventListener('change', applyFiltersAndRender);
+        cancelButton.addEventListener('click', closeEditModal);
+        saveButton.addEventListener('click', saveChanges);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeEditModal();
+        });
+        
+        // ----------------------------------------------------
+        //  (以下、変更のない関数群)
+        // ----------------------------------------------------
+        async function fetchAndRenderPhotos() {
+            try {
+                const response = await fetch('get_photos.php');
+                if (!response.ok) throw new Error('サーバーからの応答がありません。');
+                allPhotos = await response.json();
+                applyFiltersAndRender();
+            } catch (error) {
+                imageListDiv.innerHTML = `<p>画像の読み込みに失敗しました: ${error.message}</p>`;
+            }
+        }
+        function applyFiltersAndRender() {
+            const studentId = studentIdSearch.value.trim().toLowerCase();
+            const genre = genreSearch.value;
+            let filteredPhotos = [...allPhotos];
+            if (studentId) {
+                filteredPhotos = filteredPhotos.filter(photo => 
+                    photo.student_id && photo.student_id.toLowerCase().includes(studentId)
+                );
+            }
+            if (genre) {
+                filteredPhotos = filteredPhotos.filter(photo => photo.genre === genre);
+            }
+            renderPhotoCards(filteredPhotos);
+        }
+        function renderPhotoCards(photos) {
+            imageListDiv.innerHTML = '';
+            if (photos.length === 0) {
+                imageListDiv.innerHTML = '<p>該当する画像はありません。</p>';
+                return;
+            }
+            photos.forEach(photo => {
+                const card = document.createElement('div');
+                card.className = 'photo-card';
+                card.dataset.imageName = photo.image_name;
+                card.innerHTML = `
+                    <img src="${photo.imageUrl}" alt="${photo.student_id}">
+                    <div class="photo-info">
+                        <p><strong>学籍番号:</strong> ${photo.student_id}</p>
+                        <p><strong>ジャンル:</strong> ${photo.genre || 'なし'}</p>
+                        ${photo.return_date ? `<p class="return-date"><strong>返却予定:</strong> ${photo.return_date}</p>` : ''}
+                    </div>
+                `;
+                card.addEventListener('click', () => openEditModal(photo));
+                imageListDiv.appendChild(card);
+            });
+        }
+        function openEditModal(photo) {
+            editImageNameInput.value = photo.image_name;
+            editReturnDateInput.value = photo.return_date || '';
+            editGenreSelect.value = photo.genre || '';
+            modal.style.display = 'flex';
+        }
+        function closeEditModal() {
+            modal.style.display = 'none';
+        }
+        async function saveChanges() {
+            const imageName = editImageNameInput.value;
+            const selectedGenre = editGenreSelect.value;
+            const returnDate = editReturnDateInput.value;
+            try {
+                const response = await fetch('update_photo.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        image_name: imageName,
+                        genre: selectedGenre,
+                        return_date: returnDate
+                    })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    alert('更新しました。');
+                    closeEditModal();
+                    fetchAndRenderPhotos();
+                } else {
+                    alert('更新に失敗しました: ' + result.message);
+                }
+            } catch (error) {
+                alert('通信エラーが発生しました。');
+            }
+        }
+    </script>
+</body>
+</html>

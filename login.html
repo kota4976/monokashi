@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ログイン</title>
+    <style>
+        /* ページ全体のスタイル */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            margin: 0;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        /* ログインフォームのコンテナ */
+        .login-container {
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            box-sizing: border-box;
+        }
+
+        /* フォームのタイトル */
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-top: 0;
+            margin-bottom: 30px;
+        }
+
+        /* 入力欄のグループ */
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        /* ラベルのスタイル */
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        /* 入力欄（テキスト、パスワード）のスタイル */
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        /* 入力欄がフォーカスされた時のスタイル */
+        input[type="text"]:focus,
+        input[type="password"]:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
+        }
+
+        /* ボタンのスタイル */
+        button {
+            width: 100%;
+            padding: 12px;
+            font-size: 18px;
+            font-weight: bold;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        /* ボタンにマウスが乗った時のスタイル */
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h2>ログイン</h2>
+        <form action="login_process.php" method="post">
+            <div class="input-group">
+                <label for="username">ユーザー名</label>
+                <input type="text" id="username" name="username" placeholder="ユーザー名を入力" required>
+            </div>
+            <div class="input-group">
+                <label for="password">パスワード</label>
+                <input type="password" id="password" name="password" placeholder="パスワードを入力" required>
+            </div>
+            <button type="submit">ログイン</button>
+        </form>
+    </div>
+</body>
+</html>
